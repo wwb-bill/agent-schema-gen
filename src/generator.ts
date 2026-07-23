@@ -1,0 +1,5 @@
+import type{ToolDef,GeneratedSchemas}from"./types.js";
+function tsType(t:string):string{return t==="array"?"z.array(z.unknown())":`z.${t}()`;}
+function pyType(t:string):string{return t==="array"?"list":t;}
+function pascal(s:string):string{return s.split(/[-_\s]+/).map(w=>w[0].toUpperCase()+w.slice(1)).join("");}
+export function generate(tool:ToolDef):GeneratedSchemas{const tl=[`import{z}from"zod";`,"",`export const ${tool.name}Schema=z.object({`];const pl=[`from pydantic import BaseModel`,"",`class ${pascal(tool.name)}Params(BaseModel):`];for(const p of tool.params){const o=p.required?"":".optional()";tl.push(`  ${p.name}:${tsType(p.type)}${o},${p.description?" // "+p.description:""}`);const po=p.required?"":" | None = None";pl.push(`    ${p.name}:${pyType(p.type)}${po}${p.description?"  # "+p.description:""}`);}tl.push("});");return{typescript:tl.join("\n"),python:pl.join("\n")};}
